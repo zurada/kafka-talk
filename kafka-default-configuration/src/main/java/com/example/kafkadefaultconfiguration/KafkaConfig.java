@@ -1,10 +1,13 @@
 package com.example.kafkadefaultconfiguration;
 
+import com.example.kafkadefaultconfiguration.model.Dummy;
+import com.example.kafkadefaultconfiguration.serdes.JsonSerde;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler;
+import org.apache.kafka.streams.kstream.KStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
@@ -20,6 +23,16 @@ import java.util.concurrent.TimeUnit;
 public class KafkaConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaConfig.class);
+
+    @Bean
+    public KStream<String, Dummy> dummyStream(StreamsBuilder streamsBuilder) {
+        KStream<String, Dummy> dummyStream = streamsBuilder
+                .stream("dummy", JsonSerde.consume(Dummy.class))
+                .peek((s, dummy) -> logger.info("Received Dummy: {}", dummy));
+        dummyStream.to("dummyOut", JsonSerde.produce(Dummy.class));
+
+        return dummyStream;
+    }
 
     @Bean("streamsBuilder")
     public StreamsBuilder streamsBuilder() {
@@ -37,7 +50,7 @@ public class KafkaConfig {
         streamsConfig.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, LogAndContinueExceptionHandler.class);
 
         Topology topology = builder.build();
-        logger.info("Streams topology:\n{}",topology.describe());
+        logger.info("Streams topology:\n{}", topology.describe());
 
         return new KafkaStreams(topology, streamsConfig);
     }
@@ -67,21 +80,21 @@ public class KafkaConfig {
 
         @Override
         public void stop(Runnable callback) {
-            if(callback != null) {
+            if (callback != null) {
                 callback.run();
             }
 
-            if(isRunning()) {
+            if (isRunning()) {
                 kafkaStreams.close(10, TimeUnit.SECONDS);
             }
         }
 
         @Override
         public void start() {
-            if(!isRunning()) {
+            if (!isRunning()) {
                 try {
                     kafkaStreams.start();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     throw new RuntimeException("Failed to start kafka streams", e);
                 }
             }
