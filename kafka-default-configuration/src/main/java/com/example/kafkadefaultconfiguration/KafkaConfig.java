@@ -14,10 +14,10 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class KafkaConfig {
@@ -85,7 +85,7 @@ public class KafkaConfig {
             }
 
             if (isRunning()) {
-                kafkaStreams.close(10, TimeUnit.SECONDS);
+                kafkaStreams.close(Duration.ofSeconds(10));
             }
         }
 
