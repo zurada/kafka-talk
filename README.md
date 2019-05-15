@@ -1,5 +1,6 @@
 # kafka-talk
 Talk on: How do we use Apache Kafka at Swisscom and what is it for?
+https://www.youtube.com/watch?v=leAMaissdVo
 
 ## What is it?
 It contains the presentation and code which I used during Swisscom DevOps week for the talk about Kafka.
